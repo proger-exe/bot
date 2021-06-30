@@ -13,16 +13,6 @@ from aiogram.utils.helper import Helper, HelperMode, ListItem
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-class TestStates(Helper):
-    mode = HelperMode.snake_case
-
-    TEST_STATE_0 = ListItem()
-    TEST_STATE_1 = ListItem()
-    TEST_STATE_2 = ListItem()
-    TEST_STATE_3 = ListItem()
-    TEST_STATE_4 = ListItem()
-    TEST_STATE_5 = ListItem()
-
 
 class IsAdminFilter(BoundFilter):
     key = "is_admin"
@@ -36,7 +26,7 @@ class IsAdminFilter(BoundFilter):
 
 
 
-TOKEN = '1719103842:AAHwXZjHmpfNea_x4fIYdKvDEwEpY0gTVp8'#и да это работает
+TOKEN = '1846763082:AAHMJHoMRyrVgd-HT2Z9tAoGJIJB-aqLjB0'#и да это работает
 SUCCED = 'Активированно!'
 
 
@@ -56,7 +46,7 @@ async def cmd_test(message: types.Message):
 async def rules(msg: types.Message):
     await msg.reply("https://telegra.ph/Pravila-06-25-8")
 
-@dp.message_handler(commands=["a_help"])
+@dp.message_handler(commands=["help"])
 async def help(msg: types.Message):
     await msg.reply("""<b>❤️ ||Команды для админов|| ❤️ </b>
 мут/mute | разглушить/unmute | бан/банан/ban | разбан/unban | удолить/deleate |
