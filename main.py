@@ -26,7 +26,7 @@ class IsAdminFilter(BoundFilter):
 
 
 
-TOKEN = '1846763082:AAHMJHoMRyrVgd-HT2Z9tAoGJIJB-aqLjB0'#и да это работает
+TOKEN = 'token'#и да это работает
 SUCCED = 'Активированно!'
 
 
