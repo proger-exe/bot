@@ -24,5 +24,4 @@ class IsReplied(BoundFilter):
 
             return False
 
-        else:
-            return True
+        return True
