@@ -2,13 +2,16 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from simpleconfig import SimpleConfig
 
 from handlers import setup
-from utils import config
 
 from filters import IsAdminFilter, IsReplied
 
 def main():
+    config = SimpleConfig()
+    config.parse("config.cfg")
+
     token = config.get("bot-token")
 
     bot = Bot(token=token, parse_mode="html")
