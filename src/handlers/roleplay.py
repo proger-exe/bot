@@ -18,6 +18,3 @@ async def kiss_rp(msg: types.Message):
 
 async def butt_pad_rp(msg: types.Message):
     await msg.answer(messager.get_html("дал(а) чапалах", msg))
-
-async def masturbate_rp(msg: types.Message):
-    await msg.answer(f"<a href='tg://user?id={msg.from_id}'>{msg.from_user.full_name}</a> дико подрочил(а) и кончил {random.randint(0, 100)}мл. спермы")
