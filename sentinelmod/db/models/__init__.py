@@ -8,3 +8,4 @@ from .federation import Federation, FederationChat, FederationBan
 from .filter_trigger import FilterTrigger
 from .moderation_log import ModerationLog
 from .welcome_settings import WelcomeSettings
+from .chat_setting import ChatSetting
