@@ -2,9 +2,15 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from typing import Optional, Tuple
+from datetime import timedelta
+from typing import Optional, Tuple, List
 
 from aiogram.types import Message, User
+from sqlalchemy import select
+
+from sentinelmod.db.base import async_session
+from sentinelmod.db.models.moderation_log import ModerationLog
+from sentinelmod.services.registration import register_chat, register_user
 
 # In-memory storage for warnings
 _warn_counts = defaultdict(int)
@@ -52,6 +58,8 @@ async def warn_user(msg: Message, target: User, reason: str) -> None:
     await msg.reply(f"Предупреждение {target.full_name}: {reason}")
     await _escalate_punishment(msg, target, count)
 
+    await log_action(msg, target, "warn", reason, is_public=True)
+
 
 async def ban_user(msg: Message, target: User, duration: Optional[int], reason: str) -> None:
     """Ban a user for optional duration."""
@@ -62,10 +70,16 @@ async def ban_user(msg: Message, target: User, duration: Optional[int], reason: 
     else:
         await msg.reply(f"Пользователь {target.full_name} забанен. Причина: {reason}")
 
+    await log_action(msg, target, "ban", reason, duration)
+
 
 async def unban_user(msg: Message, user_id: int) -> None:
     """Unban a user by ID."""
     await msg.reply(f"Пользователь {user_id} разбанен")
+
+    if msg.from_user:
+        # Log unban if moderator info is available
+        await log_action(msg, User(id=user_id, is_bot=False, first_name=""), "unban", None)
 
 
 async def mute_user(msg: Message, target: User, duration: int, reason: str) -> None:
@@ -74,12 +88,65 @@ async def mute_user(msg: Message, target: User, duration: int, reason: str) -> N
         f"Пользователь {target.full_name} замьючен на {duration} секунд. Причина: {reason}"
     )
 
+    await log_action(msg, target, "mute", reason, duration)
+
 
 async def unmute_user(msg: Message, target: User) -> None:
     """Remove mute from a user."""
     await msg.reply(f"Пользователь {target.full_name} размьючен")
 
+    await log_action(msg, target, "unmute", None)
+
 
 async def kick_user(msg: Message, target: User, reason: str) -> None:
     """Kick a user."""
     await msg.reply(f"Пользователь {target.full_name} кикнут. Причина: {reason}")
+
+    await log_action(msg, target, "kick", reason)
+
+
+async def log_action(
+    msg: Message,
+    target: User,
+    action: str,
+    reason: str | None = None,
+    duration: int | None = None,
+    is_public: bool = False,
+) -> None:
+    """Store moderation action in ModerationLog."""
+
+    db_chat = await register_chat(msg.chat)
+    db_target = await register_user(target)
+    moderator_id = None
+    if msg.from_user:
+        db_moderator = await register_user(msg.from_user)
+        moderator_id = db_moderator.id
+
+    async with async_session() as session:
+        entry = ModerationLog(
+            chat_id=db_chat.id,
+            user_id=db_target.id,
+            moderator_id=moderator_id,
+            action=action,
+            reason=reason,
+            duration=timedelta(seconds=duration) if duration else None,
+            is_public=is_public,
+        )
+        session.add(entry)
+        await session.commit()
+
+
+async def get_logs(
+    chat_id: int, user_id: int, public_only: bool = False
+) -> List[ModerationLog]:
+    """Fetch moderation logs for a user."""
+
+    async with async_session() as session:
+        stmt = select(ModerationLog).where(
+            ModerationLog.chat_id == chat_id, ModerationLog.user_id == user_id
+        )
+        if public_only:
+            stmt = stmt.where(ModerationLog.is_public.is_(True))
+        stmt = stmt.order_by(ModerationLog.created_at.desc())
+        result = await session.scalars(stmt)
+        return list(result)
