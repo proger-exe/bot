@@ -1,18 +1,33 @@
-# Description
+# SentinelMod
 
-Light moderation bot with game part
+Skeleton implementation for a Telegram moderation bot built with [Aiogram 3](https://github.com/aiogram/aiogram) and
+asynchronous SQLAlchemy. The project provides database models, handler structure and basic services to build upon.
 
-# How to run
+## Setup
 
-Install dependecies:
+Create a virtual environment and install dependencies:
+
 ```bash
-$ pip install -r requements.txt
+pip install -r requirements.txt
 ```
 
-Edit the config (`config.cfg`)
-And run:
-```bash
-$ python app.py
+Create a `.env` file with your bot token and PostgreSQL DSN:
+
+```
+BOT_TOKEN=123456:ABCDEF
+POSTGRES_DSN=postgresql+asyncpg://user:pass@localhost:5432/sentinel
 ```
 
-Good luck!
+Run database migrations (not included) and start the bot:
+
+```bash
+python -m sentinelmod.main
+```
+
+## Tests
+
+Run a small test suite with:
+
+```bash
+pytest
+```
