@@ -21,13 +21,33 @@ WARN_BAN_THRESHOLD = 5
 
 
 def parse_duration(token: str) -> Optional[int]:
-    """Parse duration string like '10m', '2h'. Return seconds."""
-    match = re.fullmatch(r"(\d+)([smhd])", token)
-    if not match:
+    """Parse duration string into seconds.
+
+    Supports combined values like ``1h30m`` or ``2d5h``. Returns ``None`` if the
+    string does not fully match the expected pattern.
+    """
+
+    if not token:
         return None
-    value, unit = match.groups()
+
     multipliers = {"s": 1, "m": 60, "h": 3600, "d": 86400}
-    return int(value) * multipliers[unit]
+    parts = re.findall(r"(\d+)([smhd])", token)
+    if not parts or "".join(f"{v}{u}" for v, u in parts) != token:
+        return None
+    return sum(int(value) * multipliers[unit] for value, unit in parts)
+
+
+def format_duration(seconds: int) -> str:
+    """Return a human readable representation of ``seconds``."""
+
+    periods = (("d", 86400, "д"), ("h", 3600, "ч"), ("m", 60, "м"), ("s", 1, "с"))
+    remaining = seconds
+    parts = []
+    for _, length, suffix in periods:
+        value, remaining = divmod(remaining, length)
+        if value:
+            parts.append(f"{value}{suffix}")
+    return " ".join(parts) if parts else "0с"
 
 
 def parse_time_and_reason(text: str) -> Tuple[Optional[int], str]:
@@ -55,7 +75,9 @@ async def warn_user(msg: Message, target: User, reason: str) -> None:
     """Warn a user and escalate punishment if needed."""
     _warn_counts[target.id] += 1
     count = _warn_counts[target.id]
-    await msg.reply(f"Предупреждение {target.full_name}: {reason}")
+    await msg.reply(
+        f"Предупреждение {target.full_name}: {reason} (#{count})"
+    )
     await _escalate_punishment(msg, target, count)
 
     await log_action(msg, target, "warn", reason, is_public=True)
@@ -65,7 +87,7 @@ async def ban_user(msg: Message, target: User, duration: Optional[int], reason: 
     """Ban a user for optional duration."""
     if duration:
         await msg.reply(
-            f"Пользователь {target.full_name} забанен на {duration} секунд. Причина: {reason}"
+            f"Пользователь {target.full_name} забанен на {format_duration(duration)}. Причина: {reason}"
         )
     else:
         await msg.reply(f"Пользователь {target.full_name} забанен. Причина: {reason}")
@@ -85,7 +107,7 @@ async def unban_user(msg: Message, user_id: int) -> None:
 async def mute_user(msg: Message, target: User, duration: int, reason: str) -> None:
     """Mute a user for a duration."""
     await msg.reply(
-        f"Пользователь {target.full_name} замьючен на {duration} секунд. Причина: {reason}"
+        f"Пользователь {target.full_name} замьючен на {format_duration(duration)}. Причина: {reason}"
     )
 
     await log_action(msg, target, "mute", reason, duration)
