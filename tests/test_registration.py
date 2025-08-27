@@ -12,6 +12,7 @@ from sentinelmod.db.models.user import User as UserModel
 from sentinelmod.db.models.chat import Chat as ChatModel
 from sentinelmod.db.models.user_chat_association import UserChatAssociation
 from sentinelmod.db.models.role import Role, UserChatRole
+
 from sentinelmod.services.registration import register_chat, register_user, add_user_to_chat
 
 
@@ -36,6 +37,7 @@ async def test_registration_creates_records():
                 UserChatAssociation.chat_id == db_chat.id,
             )
         )
+
         role_name = await session.scalar(
             select(Role.name)
             .join(UserChatRole)
@@ -45,7 +47,9 @@ async def test_registration_creates_records():
             )
         )
 
+
     assert db_user is not None
     assert db_chat is not None
     assert link is not None
     assert role_name == "member"
+

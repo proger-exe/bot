@@ -1,3 +1,4 @@
+
 from aiogram import F, Router
 from aiogram.types import Message
 
@@ -15,3 +16,4 @@ async def set_admin(msg: Message) -> None:
     target = msg.reply_to_message.from_user
     await set_user_role(target.id, msg.chat.id, "moderator")
     await msg.reply("Пользователь назначен модератором")
+

@@ -7,7 +7,9 @@ from sentinelmod.db.base import async_session
 from sentinelmod.db.models.chat import Chat as ChatModel
 from sentinelmod.db.models.user import User as UserModel
 from sentinelmod.db.models.user_chat_association import UserChatAssociation
+
 from sentinelmod.services.roles import ensure_default_roles, set_user_role
+
 
 
 async def register_chat(chat: Chat) -> ChatModel:
@@ -41,14 +43,18 @@ async def register_user(user: TGUser) -> UserModel:
 
 async def add_user_to_chat(user_id: int, chat_id: int) -> None:
     """Create association between user and chat if not exists."""
+
     await ensure_default_roles()
+
     async with async_session() as session:
         link = await session.scalar(
             select(UserChatAssociation)
             .where(UserChatAssociation.user_id == user_id, UserChatAssociation.chat_id == chat_id)
         )
+
         if not link:
             session.add(UserChatAssociation(user_id=user_id, chat_id=chat_id))
             await session.commit()
 
     await set_user_role(user_id, chat_id, "member")
+
