@@ -8,6 +8,8 @@ from sentinelmod.services.welcome import (
     set_welcome_photo,
     set_welcome_text,
 )
+from sentinelmod.services.settings import get_chat_settings, set_chat_setting
+from sentinelmod.services.filters import add_stop_word, list_stop_words, remove_stop_word
 from sentinelmod.handlers.middleware.role_check import RoleCheckMiddleware
 
 router = Router()
@@ -56,4 +58,46 @@ async def set_welcome_cmd(msg: Message) -> None:
         return
     await set_welcome_text(msg.chat, text)
     await msg.reply("Текст приветствия сохранён")
+
+
+@router.message(F.text.startswith("!settings"))
+async def settings_cmd(msg: Message) -> None:
+    """Display or edit chat settings."""
+    parts = msg.text.split(maxsplit=2)
+    if len(parts) == 1:
+        cfg = await get_chat_settings(msg.chat)
+        if not cfg:
+            await msg.reply("Настройки не заданы")
+        else:
+            lines = [f"{k}: {v}" for k, v in cfg.items()]
+            await msg.reply("\n".join(lines))
+        return
+    if len(parts) < 3:
+        await msg.reply("Использование: !settings [key value]")
+        return
+    key, value = parts[1], parts[2]
+    await set_chat_setting(msg.chat, key, value)
+    await msg.reply("Настройка сохранена")
+
+
+@router.message(F.text.startswith("!add_filter"))
+async def add_filter_cmd(msg: Message) -> None:
+    """Manage stop words for chat."""
+    parts = msg.text.split(maxsplit=2)
+    if len(parts) == 1:
+        words = await list_stop_words(msg.chat)
+        if words:
+            await msg.reply("Стоп-слова: " + ", ".join(words))
+        else:
+            await msg.reply("Стоп-слов нет")
+        return
+    if parts[1] == "remove" and len(parts) == 3:
+        await remove_stop_word(msg.chat, parts[2])
+        await msg.reply("Стоп-слово удалено")
+        return
+    if msg.from_user:
+        await add_stop_word(msg.chat, msg.from_user, parts[1])
+        await msg.reply("Стоп-слово добавлено")
+    else:
+        await msg.reply("Неизвестный пользователь")
 
