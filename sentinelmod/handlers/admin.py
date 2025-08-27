@@ -3,8 +3,10 @@ from aiogram import F, Router
 from aiogram.types import Message
 
 from sentinelmod.services.roles import set_user_role
+from sentinelmod.handlers.middleware.role_check import RoleCheckMiddleware
 
 router = Router()
+router.message.middleware(RoleCheckMiddleware("moderator"))
 
 
 @router.message(F.text.startswith("!set_admin"))
