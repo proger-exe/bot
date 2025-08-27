@@ -30,8 +30,17 @@ def parse_duration(token: str) -> Optional[int]:
     if not token:
         return None
 
-    multipliers = {"s": 1, "m": 60, "h": 3600, "d": 86400}
-    parts = re.findall(r"(\d+)([smhd])", token)
+    multipliers = {
+        "s": 1,
+        "m": 60,
+        "h": 3600,
+        "d": 86400,
+        "с": 1,
+        "м": 60,
+        "ч": 3600,
+        "д": 86400,
+    }
+    parts = re.findall(r"(\d+)([smhdсмчд])", token)
     if not parts or "".join(f"{v}{u}" for v, u in parts) != token:
         return None
     return sum(int(value) * multipliers[unit] for value, unit in parts)
