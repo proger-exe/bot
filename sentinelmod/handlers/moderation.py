@@ -2,8 +2,10 @@ from aiogram import Router, F
 from aiogram.types import Message
 
 from sentinelmod.services import moderation as moderation_service
+from sentinelmod.handlers.middleware.role_check import RoleCheckMiddleware
 
 router = Router()
+router.message.middleware(RoleCheckMiddleware("moderator"))
 
 
 @router.message(F.text.startswith("!warn"))
