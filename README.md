@@ -21,7 +21,7 @@ POSTGRES_DSN=postgresql+asyncpg://user:pass@localhost:5432/sentinel
 Run database migrations (not included) and start the bot:
 
 ```bash
-python -m sentinelmod.main
+python main.py
 ```
 
 ## Tests
