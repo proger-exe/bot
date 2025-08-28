@@ -35,3 +35,4 @@ async def test_parse_time_and_reason(text):
     duration, reason = parse_time_and_reason(text)
     assert duration == 5400
     assert reason == "test reason"
+
