@@ -23,15 +23,16 @@ async def test_parse_duration(token, expected):
     assert parse_duration(token) == expected
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "text, expected_duration, expected_reason",
+    "text",
     [
-        ("1h30m test reason", 5400, "test reason"),
-        ("1ч30м тест", 5400, "тест"),
+        "1h30m test reason",
+        "1ч30м test reason",
     ],
 )
-@pytest.mark.asyncio
-async def test_parse_time_and_reason(text, expected_duration, expected_reason):
+async def test_parse_time_and_reason(text):
     duration, reason = parse_time_and_reason(text)
-    assert duration == expected_duration
-    assert reason == expected_reason
+    assert duration == 5400
+    assert reason == "test reason"
+
